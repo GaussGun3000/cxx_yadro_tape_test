@@ -4,7 +4,7 @@
 #include "interface.h"
 #include <string>
 
-class TapeSorter: public Tape
+class TapeSorter
 {
     TapeSorter(std::string inputFileName,std::string outputFileName);
 

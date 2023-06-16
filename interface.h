@@ -1,25 +1,39 @@
 #ifndef YADRO_TAPE_TEST_INTERFACE_H
 #define YADRO_TAPE_TEST_INTERFACE_H
 
-class Tape {
+#include <cstdint>
+
+struct TapeEmulationSettings
+{
+   uint32_t readLatency;
+   uint32_t writeLatency;
+   uint32_t moveLatency;
+   uint32_t skipLatencyperCell;
+};
+
+class TapeInterface {
 public:
-    virtual void sort() = 0;
+    virtual void sort();
 
-    virtual int32_t readCell() = 0;
+    virtual int32_t readCell();
 
-    virtual void moveForward() = 0;
+    virtual void moveForward();
 
-    virtual void moveBackwards() = 0;
+    virtual void moveBackwards();
 
-    virtual void writeCell(int32_t value) = 0;
+    virtual void skip(int32_t cells);
 
-    virtual void setReadLatency(uint32_t latency) = 0;
+    virtual void writeCell(int32_t value);
 
-    virtual void setWriteLatency(uint32_t latency) = 0;
+    virtual int64_t getCurrentPosition();
 
-    virtual void setMoveLatency(uint32_t latency) = 0;
+    virtual void setReadLatency(uint32_t latency);
 
-    virtual void setMemoryLimit(uint32_t maxCellsInMemory) = 0;
+    virtual void setWriteLatency(uint32_t latency);
+
+    virtual void setMoveLatency(uint32_t latency);
+
+    virtual ~TapeInterface() = default;
 };
 
 #endif //YADRO_TAPE_TEST_INTERFACE_H
