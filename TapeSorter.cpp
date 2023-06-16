@@ -193,7 +193,6 @@ void TapeSorter::mergeTempTapes()
             currentValues.at(i) = tempTapes[i]->readCell();
             tempTapes.at(i)->moveForward();
         }
-        std::cout << "Tape " << i << ":" << tempTapes.at(i)->getSize() << std::endl;
     }
 
 
@@ -204,11 +203,13 @@ void TapeSorter::mergeTempTapes()
                                    std::min_element(currentValues.begin(), currentValues.end()));
 
         outputTape->writeCell(currentValues.at(index));
+        outputTape->moveForward();
         if (!tempTapes.at(index)->atEnd())
         {
             currentValues.at(index) = tempTapes.at(index)->readCell();
             tempTapes.at(index)->moveForward();
         }
+        else currentValues.at(index) = std::numeric_limits<int32_t>::max();
     }
 }
 
