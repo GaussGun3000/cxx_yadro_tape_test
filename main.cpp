@@ -2,25 +2,19 @@
 #include "Tape.h"
 #include "TapeSorter.h"
 
-int main()
+int main(int argc, char* argv[])
 {
-//    TapeEmulationSettings settings{};
-//    Tape tape("tape.bin", settings);
-//    std::cout << tape.getCurrentPosition() << ": " << tape.readCell() << std::endl;
-//    tape.moveForward();
-//    tape.writeCell(11111);
-//    std::cout << tape.getCurrentPosition() << ": " << tape.readCell() << std::endl;
-//    tape.writeCell(2222);
-//    tape.readCell();
-//    std::cout << tape.getCurrentPosition() << ": " << tape.readCell() << std::endl;
-//    tape.moveBackwards();
-//    std::cout << tape.getCurrentPosition() << ": " << tape.readCell() << std::endl;
-//    tape.skip(-1);
-//    tape.moveForward();
-//    std::cout << tape.getCurrentPosition() << ": " << tape.readCell() << std::endl;
-//    tape.moveForward();
-//    tape.writeCell(142347278);
-//    std::cout << tape.getCurrentPosition() << ": " << tape.readCell() << std::endl;
-    TapeSorter ts = TapeSorter("input.bin", "output.bin");
+    if (argc < 2)
+    {
+        std::cout << "Not enough arguments were provided!\n";
+        return -1;
+    }
+
+    std::string inputFile = argv[1];
+    std::string outputFile = argv[2];
+
+    TapeSorter ts = TapeSorter(inputFile, outputFile);
+    ts.sort();
+    ts.printSorted();
     return 0;
 }

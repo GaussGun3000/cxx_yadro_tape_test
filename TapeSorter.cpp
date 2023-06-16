@@ -98,6 +98,7 @@ std::map<std::string, std::string> TapeSorter::parseIniFile(const std::string &f
 
 void TapeSorter::sort()
 {
+    std::cout << "started sorting";
     if (inputTape->getSize() <= memoryLimit)
     {
         std::vector<int32_t> data;
@@ -115,6 +116,7 @@ void TapeSorter::sort()
         }
     }
     else multiFileSort();
+    std::cout << "Sort finished" << std::endl;
 }
 
 void TapeSorter::multiFileSort()
@@ -201,5 +203,10 @@ void TapeSorter::mergeTempTapes()
         tempTapes.at(index)->moveForward();
         currentValues.at(index) = tempTapes.at(index)->readCell();
     }
+}
+
+void TapeSorter::printSorted()
+{
+    outputTape->printContentNoLatency();
 }
 

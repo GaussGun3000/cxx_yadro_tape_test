@@ -125,3 +125,16 @@ bool Tape::atEnd()
     return getCurrentPosition() == tapeSize;
 }
 
+void Tape::printContentNoLatency()
+{
+    std::streampos currentPosition = tapeFile.tellg();
+    tapeFile.seekg(0, std::ios::beg);
+
+    int32_t value;
+    while (tapeFile.read(reinterpret_cast<char*>(&value), sizeof(int32_t)))
+    {
+        std::cout << value << std::endl;
+    }
+    tapeFile.seekg(currentPosition);
+}
+

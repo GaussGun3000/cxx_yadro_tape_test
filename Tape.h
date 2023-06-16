@@ -21,6 +21,7 @@ public:
     Tape(const std::string &fileName, const TapeEmulationSettings &settings);
     uint32_t getSize() const;
     bool atEnd();
+    void printContentNoLatency();
 
     int32_t readCell() override;
 

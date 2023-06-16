@@ -12,6 +12,7 @@ class TapeSorter
 public:
     TapeSorter(const std::string& inputFileName, const std::string& outputFileName);
     void sort();
+    void printSorted();
 
 private:
     std::unique_ptr<Tape> createEmptyTape(const std::string& fileName, uint32_t cellsCount);
