@@ -26,7 +26,10 @@ void generateTapeFile(const std::string& filePath, uint32_t numIntegers) {
 
 int main() {
     const std::string filePath = "tape.bin";
-    const uint32_t numIntegers = 1000000;
+    uint32_t numIntegers;
+
+    std::cout << "Enter desired size: ";
+    std::cin >> numIntegers;
 
     generateTapeFile(filePath, numIntegers);
 

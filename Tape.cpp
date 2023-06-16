@@ -115,3 +115,13 @@ Tape::~Tape()
         tapeFile.close();
 }
 
+uint32_t Tape::getSize() const
+{
+    return tapeSize;
+}
+
+bool Tape::atEnd()
+{
+    return getCurrentPosition() == tapeSize;
+}
+

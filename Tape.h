@@ -19,6 +19,8 @@ class Tape : public TapeInterface
 {
 public:
     Tape(const std::string &fileName, const TapeEmulationSettings &settings);
+    uint32_t getSize() const;
+    bool atEnd();
 
     int32_t readCell() override;
 
