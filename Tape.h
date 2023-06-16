@@ -18,7 +18,7 @@
 class Tape : public TapeInterface
 {
 public:
-    Tape(const std::string &inputFileName, const TapeEmulationSettings &settings);
+    Tape(const std::string &fileName, const TapeEmulationSettings &settings);
 
     int32_t readCell() override;
 
@@ -26,11 +26,11 @@ public:
 
     void moveBackwards() override;
 
-    void skip(int32_t cells) override;
+    void skip(int32_t beginning) override;
 
     void writeCell(int32_t value) override;
 
-    int64_t getCurrentPosition() override;
+    uint32_t getCurrentPosition() override;
 
     void setReadLatency(uint32_t latency) override;
 
@@ -43,6 +43,7 @@ public:
 private:
     std::unique_ptr<TapeEmulationSettings> emulationSettings;
     std::fstream tapeFile;
+    uint32_t tapeSize;
 
 };
 

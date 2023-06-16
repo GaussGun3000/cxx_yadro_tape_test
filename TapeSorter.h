@@ -6,6 +6,7 @@
 
 class TapeSorter
 {
+public:
     TapeSorter(std::string inputFileName,std::string outputFileName);
 
 };

@@ -20,11 +20,11 @@ public:
 
     virtual void moveBackwards() = 0;
 
-    virtual void skip(int32_t cells) = 0;
+    virtual void skip(int32_t beginning) = 0;
 
     virtual void writeCell(int32_t value) = 0;
 
-    virtual int64_t getCurrentPosition() = 0;
+    virtual uint32_t getCurrentPosition() = 0;
 
     virtual void setReadLatency(uint32_t latency) = 0;
 
