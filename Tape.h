@@ -15,18 +15,13 @@
 #include <thread>
 #include <cstdint>
 
-class Tape : public TapeInterface {
-
+class Tape : public TapeInterface
+{
 public:
-    Tape(const std::string &inputFileName, const std::string &outputFileName, const TapeEmulationSettings &settings);
-
-private:
-    std::unique_ptr<TapeEmulationSettings> emulationSettings;
-    std::fstream tapeFile;
+    Tape(const std::string &inputFileName, const TapeEmulationSettings &settings);
 
     int32_t readCell() override;
 
-public:
     void moveForward() override;
 
     void moveBackwards() override;
@@ -42,6 +37,12 @@ public:
     void setWriteLatency(uint32_t latency) override;
 
     void setMoveLatency(uint32_t latency) override;
+
+    ~Tape() override;
+
+private:
+    std::unique_ptr<TapeEmulationSettings> emulationSettings;
+    std::fstream tapeFile;
 
 };
 

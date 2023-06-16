@@ -1,7 +1,11 @@
 #include <iostream>
+#include "Tape.h"
 
 int main()
 {
-    std::cout << "Hello, World!" << std::endl;
+    TapeEmulationSettings settings{};
+    Tape tape("tape.bin", settings);
+    std::cout << tape.readCell() << std::endl;
+    tape.moveForward();
     return 0;
 }

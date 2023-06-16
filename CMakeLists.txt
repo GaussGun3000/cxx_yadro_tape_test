@@ -4,3 +4,4 @@ project(yadro_tape_test)
 set(CMAKE_CXX_STANDARD 14)
 
 add_executable(yadro_tape_test main.cpp interface.h TapeSorter.cpp TapeSorter.h Tape.cpp Tape.h)
+add_executable(generator generator.cpp)
