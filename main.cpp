@@ -17,7 +17,6 @@ int main(int argc, char* argv[])
 
         TapeSorter ts = TapeSorter(inputFile, outputFile);
         ts.sort();
-        ts.printSorted();
     }catch (std::exception& e)
     {
         std::cout << "Something went wrong: " << e.what() << std::endl;

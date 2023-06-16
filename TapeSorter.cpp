@@ -20,7 +20,7 @@ TapeSorter::TapeSorter(const std::string &inputFileName, const std::string &outp
         std::cerr << "Could not parse configuration file: " << e.what() << std::endl;
     }
     inputTape = std::make_unique<Tape>(inputFileName, emulationSettings);
-    outputTape = createEmptyTape(outputFileName, inputTape->getSize() / sizeof(int32_t) + 1);
+    outputTape = createEmptyTape(outputFileName, inputTape->getSize() / sizeof(int32_t));
 }
 
 
