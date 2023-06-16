@@ -134,7 +134,7 @@ void TapeSorter::multiFileSort()
         value = inputTape->readCell();
         chunkBuffer.push_back(value);
 
-        if (chunkBuffer.size() >= chunkSize)
+        if (chunkBuffer.size() <= chunkSize)
         {
             std::sort(chunkBuffer.begin(), chunkBuffer.end());
 
