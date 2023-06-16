@@ -20,7 +20,7 @@ TapeSorter::TapeSorter(const std::string &inputFileName, const std::string &outp
         std::cerr << "Could not parse configuration file: " << e.what() << std::endl;
     }
     inputTape = std::make_unique<Tape>(inputFileName, emulationSettings);
-    outputTape = createEmptyTape(outputFileName, inputTape->getSize() / sizeof(int32_t));
+    outputTape = createEmptyTape(outputFileName, inputTape->getSize() / sizeof(int32_t) + 1);
 }
 
 
@@ -98,7 +98,7 @@ std::map<std::string, std::string> TapeSorter::parseIniFile(const std::string &f
 
 void TapeSorter::sort()
 {
-    std::cout << "started sorting";
+    std::cout << "started sorting" << std::endl;
     if (inputTape->getSize() <= memoryLimit)
     {
         std::vector<int32_t> data;
@@ -113,6 +113,7 @@ void TapeSorter::sort()
         for (const auto& element : data)
         {
             outputTape->writeCell(element);
+            outputTape->moveForward();
         }
     }
     else multiFileSort();
@@ -121,10 +122,8 @@ void TapeSorter::sort()
 
 void TapeSorter::multiFileSort()
 {
-    // Input tape exceeds the memory limit, perform sorting using temporary tapes
     const uint32_t chunkSize = memoryLimit / sizeof(int32_t);
 
-    // Create temporary tapes for sorting
     uint32_t chunkIndex = 0;
     int32_t value;
     std::vector<int32_t> chunkBuffer;
@@ -134,14 +133,15 @@ void TapeSorter::multiFileSort()
         value = inputTape->readCell();
         chunkBuffer.push_back(value);
 
-        if (chunkBuffer.size() <= chunkSize)
+        if (chunkBuffer.size() >= chunkSize)
         {
             std::sort(chunkBuffer.begin(), chunkBuffer.end());
+            tempTapes.emplace_back(createEmptyTape(std::string("./temp/temp_" + std::to_string(chunkIndex)), chunkSize));
 
             for (const auto &element: chunkBuffer)
             {
-                tempTapes[chunkIndex]->writeCell(element);
-                tempTapes[chunkIndex]->moveForward();
+                tempTapes.at(chunkIndex)->writeCell(element);
+                tempTapes.at(chunkIndex)->moveForward();
             }
 
             chunkIndex++;
@@ -184,24 +184,31 @@ bool TapeSorter::tempTapesAtEnd()
 
 void TapeSorter::mergeTempTapes()
 {
+    std::cout << "Merging...\n" ;
     std::vector<int32_t> currentValues(tempTapes.size());
     for (size_t i = 0; i < tempTapes.size(); ++i)
     {
         if (!tempTapes[i]->atEnd())
         {
-            currentValues[i] = tempTapes[i]->readCell();
+            currentValues.at(i) = tempTapes[i]->readCell();
+            tempTapes.at(i)->moveForward();
         }
+        std::cout << "Tape " << i << ":" << tempTapes.at(i)->getSize() << std::endl;
     }
 
+
+    outputTape->skip(1);
     while(!tempTapesAtEnd())
     {
         auto index = std::distance(currentValues.begin(),
                                    std::min_element(currentValues.begin(), currentValues.end()));
 
         outputTape->writeCell(currentValues.at(index));
-        outputTape->moveForward();
-        tempTapes.at(index)->moveForward();
-        currentValues.at(index) = tempTapes.at(index)->readCell();
+        if (!tempTapes.at(index)->atEnd())
+        {
+            currentValues.at(index) = tempTapes.at(index)->readCell();
+            tempTapes.at(index)->moveForward();
+        }
     }
 }
 

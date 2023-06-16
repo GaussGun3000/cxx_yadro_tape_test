@@ -17,10 +17,11 @@ Tape::Tape(const std::string& fileName, const TapeEmulationSettings& settings)
 
 int32_t Tape::readCell()
 {
-    std::this_thread::sleep_for(std::chrono::milliseconds(emulationSettings->readLatency));
+    std::this_thread::sleep_for(std::chrono::microseconds(emulationSettings->readLatency));
     if (getCurrentPosition() >= tapeSize)
     {
-        throw std::out_of_range("Cannot write past end of Tape!");
+        throw std::out_of_range("Cannot read past end of Tape! CurrentPos:" + std::to_string(getCurrentPosition())
+                                                                            + "Size: " + std::to_string(getSize()));
     }
 
     int32_t value = 0;
@@ -32,10 +33,11 @@ int32_t Tape::readCell()
 
 void Tape::writeCell(int32_t value)
 {
-    std::this_thread::sleep_for(std::chrono::milliseconds(emulationSettings->writeLatency));
+    std::this_thread::sleep_for(std::chrono::microseconds(emulationSettings->writeLatency));
     if (getCurrentPosition() >= tapeSize)
     {
-        throw std::out_of_range("Cannot write past end of Tape!");
+        throw std::out_of_range("Cannot write past end of Tape! CurrentPos:" + std::to_string(getCurrentPosition())
+                                + "Size: " + std::to_string(getSize()));
     }
 
     tapeFile.write(reinterpret_cast<const char*>(&value), sizeof(int32_t));
@@ -44,7 +46,7 @@ void Tape::writeCell(int32_t value)
 
 void Tape::moveForward()
 {
-    std::this_thread::sleep_for(std::chrono::milliseconds(emulationSettings->moveLatency));
+    std::this_thread::sleep_for(std::chrono::microseconds(emulationSettings->moveLatency));
     if (getCurrentPosition() >= tapeSize)
     {
         std::cout << "ERROR: Cannot move forward. Already at the end of the file." << std::endl;
@@ -55,7 +57,7 @@ void Tape::moveForward()
 
 void Tape::moveBackwards()
 {
-    std::this_thread::sleep_for(std::chrono::milliseconds(emulationSettings->moveLatency));
+    std::this_thread::sleep_for(std::chrono::microseconds(emulationSettings->moveLatency));
     if (getCurrentPosition() == 0)
     {
         std::cout << "ERROR: Cannot move backwards. Already at the start of the file." << std::endl;
@@ -71,14 +73,14 @@ void Tape::skip(int32_t beginning)
         case -1:
         {
             uint32_t cells = tapeSize - getCurrentPosition() / sizeof(int32_t);
-            std::this_thread::sleep_for(std::chrono::milliseconds(emulationSettings->skipLatencyPerCell * cells));
+            std::this_thread::sleep_for(std::chrono::microseconds (emulationSettings->skipLatencyPerCell * cells));
             tapeFile.seekg(0, std::ios::end);
             break;
         }
         case 1:
         {
             uint32_t cells = getCurrentPosition() / sizeof(int32_t);
-            std::this_thread::sleep_for(std::chrono::milliseconds(emulationSettings->skipLatencyPerCell * cells));
+            std::this_thread::sleep_for(std::chrono::microseconds(emulationSettings->skipLatencyPerCell * cells));
             tapeFile.seekg(0, std::ios::beg);
             break;
         }
@@ -133,7 +135,7 @@ void Tape::printContentNoLatency()
     int32_t value;
     while (tapeFile.read(reinterpret_cast<char*>(&value), sizeof(int32_t)))
     {
-        std::cout << value << std::endl;
+        std::cout << value << "\n";
     }
     tapeFile.seekg(currentPosition);
 }

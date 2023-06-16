@@ -4,17 +4,25 @@
 
 int main(int argc, char* argv[])
 {
-    if (argc < 2)
+    try
     {
-        std::cout << "Not enough arguments were provided!\n";
-        return -1;
+        if (argc < 2)
+        {
+            std::cout << "Not enough arguments were provided!\n";
+            return -1;
+        }
+
+        std::string inputFile = argv[1];
+        std::string outputFile = argv[2];
+
+        TapeSorter ts = TapeSorter(inputFile, outputFile);
+        ts.sort();
+        ts.printSorted();
+    }catch (std::exception& e)
+    {
+        std::cout << "Something went wrong: " << e.what() << std::endl;
     }
-
-    std::string inputFile = argv[1];
-    std::string outputFile = argv[2];
-
-    TapeSorter ts = TapeSorter(inputFile, outputFile);
-    ts.sort();
-    ts.printSorted();
+    std::cout << "Press enter to exit" << std::endl;
+    getchar();
     return 0;
 }
