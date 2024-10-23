@@ -19,16 +19,16 @@ TapeSorter::TapeSorter(const std::string &inputFileName, const std::string &outp
     catch (const std::out_of_range& e) {
         std::cerr << "Could not parse configuration file: " << e.what() << std::endl;
     }
-    inputTape = std::make_unique<Tape>(inputFileName, emulationSettings);
+    inputTape = std::make_unique<TapeEmulator>(inputFileName, emulationSettings);
     outputTape = createEmptyTape(outputFileName, inputTape->getSize() / sizeof(int32_t));
 }
 
 
-std::unique_ptr<Tape> TapeSorter::createEmptyTape(const std::string &fileName, uint32_t cellsCount)
+std::unique_ptr<TapeEmulator> TapeSorter::createEmptyTape(const std::string &fileName, uint32_t cellsCount)
 {
     if (createEmptyTapeFile(fileName, cellsCount * 4))
     {
-        std::unique_ptr<Tape> tape = std::make_unique<Tape>(fileName, emulationSettings);
+        std::unique_ptr<TapeEmulator> tape = std::make_unique<TapeEmulator>(fileName, emulationSettings);
         return tape;
     }
     else return nullptr;
@@ -93,7 +93,6 @@ std::map<std::string, std::string> TapeSorter::parseIniFile(const std::string &f
     }
 
     return config;
-
 }
 
 void TapeSorter::sort()
@@ -213,8 +212,4 @@ void TapeSorter::mergeTempTapes()
     }
 }
 
-void TapeSorter::printSorted()
-{
-    outputTape->printContentNoLatency();
-}
 

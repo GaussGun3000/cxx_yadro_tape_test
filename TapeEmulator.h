@@ -14,36 +14,42 @@
 #include <chrono>
 #include <thread>
 #include <cstdint>
+#include <map>
 
-class Tape : public TapeInterface
+struct TapeEmulationSettings
+{
+   uint32_t readLatency;
+   uint32_t writeLatency;
+   uint32_t moveLatency;
+   uint32_t skipLatencyPerCell;
+};
+
+class TapeEmulator : public TapeInterface
 {
 public:
-    Tape(const std::string &fileName, const TapeEmulationSettings &settings);
-    uint32_t getSize() const;
-    bool atEnd();
-    void printContentNoLatency();
+    TapeEmulator(const std::string &fileName);
+    uint32_t getSize() const override;
+    bool atEnd() const override;
 
     int32_t readCell() override;
-
     void moveForward() override;
-
     void moveBackwards() override;
-
     void skip(int32_t beginning) override;
-
     void writeCell(int32_t value) override;
-
     uint32_t getCurrentPosition() override;
+    ~TapeEmulator() override;
 
-    void setReadLatency(uint32_t latency) override;
-
-    void setWriteLatency(uint32_t latency) override;
-
-    void setMoveLatency(uint32_t latency) override;
-
-    ~Tape() override;
+    // METHODS FOR SIMULATION
+    void setReadLatency(uint32_t latency);
+    void setWriteLatency(uint32_t latency);
+    void setMoveLatency(uint32_t latency);
+    void printContentNoLatency();
 
 private:
+    // METHODS
+    std::map<std::string, std::string> parseIniFile(const std::string &fileName);
+
+    // MEMBERS
     std::unique_ptr<TapeEmulationSettings> emulationSettings;
     std::fstream tapeFile;
     uint32_t tapeSize;

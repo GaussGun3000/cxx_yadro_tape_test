@@ -1,8 +1,7 @@
-#include "Tape.h"
+#include "TapeEmulator.h"
 #include <filesystem>
 
-Tape::Tape(const std::string& fileName, const TapeEmulationSettings& settings)
-        : emulationSettings(std::make_unique<TapeEmulationSettings>(settings))
+TapeEmulator::TapeEmulator(const std::string& fileName)
 {
     tapeFile.open(fileName, std::ios::binary | std::ios::in | std::ios::out);
     if (!tapeFile.is_open())
@@ -15,7 +14,7 @@ Tape::Tape(const std::string& fileName, const TapeEmulationSettings& settings)
     }
 }
 
-int32_t Tape::readCell()
+int32_t TapeEmulator::readCell()
 {
     std::this_thread::sleep_for(std::chrono::microseconds(emulationSettings->readLatency));
     if (getCurrentPosition() >= tapeSize)
@@ -31,7 +30,7 @@ int32_t Tape::readCell()
     return value;
 }
 
-void Tape::writeCell(int32_t value)
+void TapeEmulator::writeCell(int32_t value)
 {
     std::this_thread::sleep_for(std::chrono::microseconds(emulationSettings->writeLatency));
     if (getCurrentPosition() >= tapeSize)
@@ -44,7 +43,7 @@ void Tape::writeCell(int32_t value)
     tapeFile.seekp(-static_cast<std::streamoff>(sizeof(int32_t)), std::ios::cur);
 }
 
-void Tape::moveForward()
+void TapeEmulator::moveForward()
 {
     std::this_thread::sleep_for(std::chrono::microseconds(emulationSettings->moveLatency));
     if (getCurrentPosition() >= tapeSize)
@@ -55,7 +54,7 @@ void Tape::moveForward()
     else tapeFile.seekg(sizeof(int32_t), std::ios::cur);
 }
 
-void Tape::moveBackwards()
+void TapeEmulator::moveBackwards()
 {
     std::this_thread::sleep_for(std::chrono::microseconds(emulationSettings->moveLatency));
     if (getCurrentPosition() == 0)
@@ -66,7 +65,7 @@ void Tape::moveBackwards()
     else tapeFile.seekg(-static_cast<std::streamoff>(sizeof(int32_t)), std::ios::cur);
 }
 
-void Tape::skip(int32_t beginning)
+void TapeEmulator::skip(int32_t beginning)
 {
     switch (beginning)
     {
@@ -91,43 +90,43 @@ void Tape::skip(int32_t beginning)
     }
 }
 
-uint32_t Tape::getCurrentPosition()
+uint32_t TapeEmulator::getCurrentPosition()
 {
     return tapeFile.tellg();
 }
 
-void Tape::setReadLatency(uint32_t latency)
+void TapeEmulator::setReadLatency(uint32_t latency)
 {
     emulationSettings->readLatency = latency;
 }
 
-void Tape::setWriteLatency(uint32_t latency)
+void TapeEmulator::setWriteLatency(uint32_t latency)
 {
     emulationSettings->writeLatency = latency;
 }
 
-void Tape::setMoveLatency(uint32_t latency)
+void TapeEmulator::setMoveLatency(uint32_t latency)
 {
     emulationSettings->moveLatency = latency;
 }
 
-Tape::~Tape()
+TapeEmulator::~TapeEmulator()
 {
     if(tapeFile.is_open())
         tapeFile.close();
 }
 
-uint32_t Tape::getSize() const
+uint32_t TapeEmulator::getSize() const
 {
     return tapeSize;
 }
 
-bool Tape::atEnd()
+bool TapeEmulator::atEnd()
 {
     return getCurrentPosition() == tapeSize;
 }
 
-void Tape::printContentNoLatency()
+void TapeEmulator::printContentNoLatency()
 {
     std::streampos currentPosition = tapeFile.tellg();
     tapeFile.seekg(0, std::ios::beg);
@@ -140,3 +139,45 @@ void Tape::printContentNoLatency()
     tapeFile.seekg(currentPosition);
 }
 
+std::map<std::string, std::string> TapeEmulator::parseIniFile(const std::string &fileName)
+{
+    std::map<std::string, std::string> config;
+
+    std::ifstream file(fileName);
+    if (!file)
+    {
+        std::cerr << "Failed to open configuration file: " << fileName << std::endl;
+        return config;
+    }
+
+    std::string line;
+    std::string section;
+    while (std::getline(file, line))
+    {
+        std::stringstream ss(line);
+        std::string key, value;
+        if (std::getline(ss, key, '=') && std::getline(ss, value))
+        {
+
+            key.erase(0, key.find_first_not_of(' '));
+            key.erase(key.find_last_not_of(' ') + 1);
+            value.erase(0, value.find_first_not_of(' '));
+            value.erase(value.find_last_not_of(' ') + 1);
+
+            if (!key.empty())
+            {
+                if (key.front() == '[' && key.back() == ']')
+                {
+                    section = key.substr(1, key.size() - 2);
+                }
+                else
+                {
+                    std::string fullKey = section.empty() ? key : (section + "." + key);
+                    config[fullKey] = value;
+                }
+            }
+        }
+    }
+
+    return config;
+}

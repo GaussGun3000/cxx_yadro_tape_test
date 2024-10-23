@@ -3,13 +3,7 @@
 
 #include <cstdint>
 
-struct TapeEmulationSettings
-{
-   uint32_t readLatency;
-   uint32_t writeLatency;
-   uint32_t moveLatency;
-   uint32_t skipLatencyPerCell;
-};
+
 
 class TapeInterface
 {
@@ -26,13 +20,12 @@ public:
 
     virtual uint32_t getCurrentPosition() = 0;
 
-    virtual void setReadLatency(uint32_t latency) = 0;
+    virtual bool atEnd() const = 0;
 
-    virtual void setWriteLatency(uint32_t latency) = 0;
-
-    virtual void setMoveLatency(uint32_t latency) = 0;
+    virtual uint32_t getSize() const = 0;
 
     virtual ~TapeInterface() = default;
+
 };
 
 #endif //YADRO_TAPE_TEST_INTERFACE_H
