@@ -28,9 +28,10 @@ class TapeEmulator : public TapeInterface
 {
 public:
     TapeEmulator(const std::string &fileName);
-    uint32_t getSize() const override;
-    bool atEnd() const override;
+    TapeEmulator(const std::string &fileName, uint32_t tapeSize); // for empty tapes
 
+    uint32_t getSize() const override;
+    bool atEnd() override;
     int32_t readCell() override;
     void moveForward() override;
     void moveBackwards() override;
@@ -44,15 +45,17 @@ public:
     void setWriteLatency(uint32_t latency);
     void setMoveLatency(uint32_t latency);
     void printContentNoLatency();
+    bool createEmptyTapeFile(const std::string &fileName, uint32_t bytes);
 
 private:
     // METHODS
+    void parseConfig(const std::string& configFile);
     std::map<std::string, std::string> parseIniFile(const std::string &fileName);
 
     // MEMBERS
-    std::unique_ptr<TapeEmulationSettings> emulationSettings;
-    std::fstream tapeFile;
-    uint32_t tapeSize;
+    TapeEmulationSettings m_emulationSettings;
+    std::fstream m_tapeFile;
+    uint32_t m_tapeSize;
 
 };
 

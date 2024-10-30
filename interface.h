@@ -20,7 +20,7 @@ public:
 
     virtual uint32_t getCurrentPosition() = 0;
 
-    virtual bool atEnd() const = 0;
+    virtual bool atEnd() = 0;
 
     virtual uint32_t getSize() const = 0;
 

@@ -1,176 +1,103 @@
 #include <sstream>
 #include <algorithm>
 #include "TapeSorter.h"
+#include "TapeEmulator.h"
 
-TapeSorter::TapeSorter(const std::string &inputFileName, const std::string &outputFileName)
+template class TapeSorter<TapeEmulator>;
+
+template <typename T>
+TapeSorter<T>::TapeSorter(std::shared_ptr<T> inputTape, std::shared_ptr<T> outputTape, uint32_t memoryLimit):
+    m_inputTape(inputTape), m_outputTape(outputTape), m_memoryLimit(memoryLimit)
 {
-    try
-    {
-        auto config = parseIniFile("../config.ini");
-        emulationSettings.writeLatency = stoi(config.at("writeLatency"));
-        emulationSettings.readLatency = stoi(config.at("readLatency"));
-        emulationSettings.moveLatency = stoi(config.at("moveLatency"));
-        emulationSettings.skipLatencyPerCell = stoi(config.at("skipLatencyPerCell"));
-        memoryLimit = stoi(config.at("memoryLimit"));
-    }
-    catch (const std::invalid_argument& e) {
-        std::cerr << "Could not parse configuration file: " << e.what() << std::endl;
-    }
-    catch (const std::out_of_range& e) {
-        std::cerr << "Could not parse configuration file: " << e.what() << std::endl;
-    }
-    inputTape = std::make_unique<TapeEmulator>(inputFileName, emulationSettings);
-    outputTape = createEmptyTape(outputFileName, inputTape->getSize() / sizeof(int32_t));
 }
 
-
-std::unique_ptr<TapeEmulator> TapeSorter::createEmptyTape(const std::string &fileName, uint32_t cellsCount)
+template <>
+void TapeSorter<TapeEmulator>::getEmptyTempTape(uint32_t chunkIndex, uint32_t chunkSize)
 {
-    if (createEmptyTapeFile(fileName, cellsCount * 4))
-    {
-        std::unique_ptr<TapeEmulator> tape = std::make_unique<TapeEmulator>(fileName, emulationSettings);
-        return tape;
-    }
-    else return nullptr;
+    std::string filePath = "temp/temp_" + std::to_string(chunkIndex);
+    std::shared_ptr<TapeInterface> tempTape = std::make_shared<TapeEmulator>(filePath, chunkSize * 4);
+    m_tempTapes.push_back(tempTape);
 }
 
-bool TapeSorter::createEmptyTapeFile(const std::string &fileName, uint64_t bytes)
-{
-    std::ofstream file(fileName, std::ios::binary | std::ios::trunc);
-    if (!file)
-    {
-        std::cerr << "Failed to create file: " << fileName << std::endl;
-        return false;
-    }
-    const char zeroByte = '\0';
-    for (uint32_t i = 0; i < bytes; ++i)
-    {
-        file.write(&zeroByte, sizeof(char));
-    }
-
-    file.close();
-    return true;
-}
-
-std::map<std::string, std::string> TapeSorter::parseIniFile(const std::string &fileName)
-{
-    std::map<std::string, std::string> config;
-
-    std::ifstream file(fileName);
-    if (!file)
-    {
-        std::cerr << "Failed to open configuration file: " << fileName << std::endl;
-        return config;
-    }
-
-    std::string line;
-    std::string section;
-    while (std::getline(file, line))
-    {
-        std::stringstream ss(line);
-        std::string key, value;
-        if (std::getline(ss, key, '=') && std::getline(ss, value))
-        {
-
-            key.erase(0, key.find_first_not_of(' '));
-            key.erase(key.find_last_not_of(' ') + 1);
-            value.erase(0, value.find_first_not_of(' '));
-            value.erase(value.find_last_not_of(' ') + 1);
-
-            if (!key.empty())
-            {
-                if (key.front() == '[' && key.back() == ']')
-                {
-                    section = key.substr(1, key.size() - 2);
-                }
-                else
-                {
-                    std::string fullKey = section.empty() ? key : (section + "." + key);
-                    config[fullKey] = value;
-                }
-            }
-        }
-    }
-
-    return config;
-}
-
-void TapeSorter::sort()
+template <typename T>
+void TapeSorter<T>::sort()
 {
     std::cout << "started sorting" << std::endl;
-    if (inputTape->getSize() <= memoryLimit)
+    if (m_inputTape->getSize() <= m_memoryLimit)
     {
         std::vector<int32_t> data;
         int32_t value;
-        while (!inputTape->atEnd())
+        while (!m_inputTape->atEnd())
         {
-            value = inputTape->readCell();
+            value = m_inputTape->readCell();
             data.push_back(value);
-            inputTape->moveForward();
+            m_inputTape->moveForward();
         }
         std::sort(data.begin(), data.end());
         for (const auto& element : data)
         {
-            outputTape->writeCell(element);
-            outputTape->moveForward();
+            m_outputTape->writeCell(element);
+            m_outputTape->moveForward();
         }
     }
-    else multiFileSort();
+    else multiTapeSort();
     std::cout << "Sort finished" << std::endl;
 }
 
-void TapeSorter::multiFileSort()
+template <typename T>
+void TapeSorter<T>::multiTapeSort()
 {
-    const uint32_t chunkSize = memoryLimit / sizeof(int32_t);
+    const uint32_t chunkSize = m_memoryLimit / sizeof(int32_t);
 
     uint32_t chunkIndex = 0;
     int32_t value;
     std::vector<int32_t> chunkBuffer;
 
-    while (!inputTape->atEnd())
+    while (!m_inputTape->atEnd())
     {
-        value = inputTape->readCell();
+        value = m_inputTape->readCell();
         chunkBuffer.push_back(value);
 
-        if (chunkBuffer.size() >= chunkSize)
+        if (chunkBuffer.size() == chunkSize)
         {
             std::sort(chunkBuffer.begin(), chunkBuffer.end());
-            tempTapes.emplace_back(createEmptyTape(std::string("./temp/temp_" + std::to_string(chunkIndex)), chunkSize));
-
+            getEmptyTempTape(chunkIndex, chunkSize);
             for (const auto &element: chunkBuffer)
             {
-                tempTapes.at(chunkIndex)->writeCell(element);
-                tempTapes.at(chunkIndex)->moveForward();
+                m_tempTapes.at(chunkIndex)->writeCell(element);
+                m_tempTapes.at(chunkIndex)->moveForward();
             }
 
             chunkIndex++;
             chunkBuffer.clear();
         }
-        inputTape->moveForward();
+        m_inputTape->moveForward();
     }
 
     if (!chunkBuffer.empty())
     {
+        getEmptyTempTape(chunkIndex, chunkBuffer.size());
         std::sort(chunkBuffer.begin(), chunkBuffer.end());
 
         for (const auto& element : chunkBuffer)
         {
-            tempTapes[chunkIndex]->writeCell(element);
-            tempTapes[chunkIndex]->moveForward();
+            m_tempTapes.at(chunkIndex)->writeCell(element);
+            m_tempTapes.at(chunkIndex)->moveForward();
         }
     }
 
-    for (const auto& tempTape : tempTapes)
+    for (const auto& tempTape : m_tempTapes)
         tempTape->skip(1);
 
     mergeTempTapes();
 
 }
 
-bool TapeSorter::tempTapesAtEnd()
+template <typename T>
+bool TapeSorter<T>::tempTapesAtEnd()
 {
     bool allTapesAtEnd = true;
-    for(const auto& tape : tempTapes)
+    for(const auto& tape : m_tempTapes)
     {
         if (!tape->atEnd())
         {
@@ -181,32 +108,47 @@ bool TapeSorter::tempTapesAtEnd()
     return allTapesAtEnd;
 }
 
-void TapeSorter::mergeTempTapes()
+template <typename T>
+bool TapeSorter<T>::currentValuesEmpty(std::vector<int32_t>& currentValues)
+{
+    for(const int32_t value: currentValues)
+    {
+        if (value != std::numeric_limits<int32_t>::max())
+            return false;
+    }
+    return true;
+}
+
+template <typename T>
+void TapeSorter<T>::mergeTempTapes()
 {
     std::cout << "Merging...\n" ;
-    std::vector<int32_t> currentValues(tempTapes.size());
-    for (size_t i = 0; i < tempTapes.size(); ++i)
+    std::vector<int32_t> currentValues(m_tempTapes.size());
+    std::vector<bool> tapeActive(m_tempTapes.size(), true);
+
+    for (size_t i = 0; i < m_tempTapes.size(); ++i)
     {
-        if (!tempTapes[i]->atEnd())
+        if (!m_tempTapes[i]->atEnd())
         {
-            currentValues.at(i) = tempTapes[i]->readCell();
-            tempTapes.at(i)->moveForward();
+            currentValues.at(i) = m_tempTapes[i]->readCell();
+            m_tempTapes.at(i)->moveForward();
         }
     }
 
-
-    outputTape->skip(1);
-    while(!tempTapesAtEnd())
+    m_outputTape->skip(1);
+    while(!tempTapesAtEnd() || !currentValuesEmpty(currentValues))
     {
         auto index = std::distance(currentValues.begin(),
                                    std::min_element(currentValues.begin(), currentValues.end()));
 
-        outputTape->writeCell(currentValues.at(index));
-        outputTape->moveForward();
-        if (!tempTapes.at(index)->atEnd())
+        if (currentValues.at(index) == 0)
+            std::cout << " ";
+        m_outputTape->writeCell(currentValues.at(index));
+        m_outputTape->moveForward();
+        if (!m_tempTapes.at(index)->atEnd())
         {
-            currentValues.at(index) = tempTapes.at(index)->readCell();
-            tempTapes.at(index)->moveForward();
+            currentValues.at(index) = m_tempTapes.at(index)->readCell();
+            m_tempTapes.at(index)->moveForward();
         }
         else currentValues.at(index) = std::numeric_limits<int32_t>::max();
     }

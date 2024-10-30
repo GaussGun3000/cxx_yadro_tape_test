@@ -7,27 +7,29 @@
 #include <vector>
 #include <map>
 
+template <typename T>
 class TapeSorter
 {
 public:
-    TapeSorter(const std::string& inputFileName, const std::string& outputFileName);
+    // Constructor takes shared pointers to input and output tapes
+    TapeSorter(std::shared_ptr<T> inputTape, std::shared_ptr<T> outputTape, uint32_t memoryLimit);
     void sort();
-    void printSorted();
 
 private:
-    // METHODS
-    std::unique_ptr<TapeEmulator> createEmptyTape(const std::string& fileName, uint32_t cellsCount);
-    static bool createEmptyTapeFile(const std::string& fileName, uint64_t bytes);
-    std::map<std::string, std::string> parseIniFile(const std::string & fileName);
-    void multiFileSort();
+    // Helper method to init and add a temporary tape to m_tempTapes
+    void getEmptyTempTape(uint32_t chunkIndex, uint32_t chunkSize);
+
+    // Helper methods for multi-file sorting and merging temporary tapes
+    void multiTapeSort();
     bool tempTapesAtEnd();
     void mergeTempTapes();
+    bool currentValuesEmpty(std::vector<int32_t>& currentValues);
 
     // MEMBERS
-    std::unique_ptr<TapeEmulator> inputTape;
-    std::unique_ptr<TapeEmulator> outputTape;
-    std::vector<std::unique_ptr<TapeEmulator>> tempTapes;
-    uint32_t memoryLimit;
+    std::shared_ptr<TapeInterface> m_inputTape;  // Shared pointer to the input tape
+    std::shared_ptr<TapeInterface> m_outputTape; // Shared pointer to the output tape
+    std::vector<std::shared_ptr<TapeInterface>> m_tempTapes;  // Temp tapes used during sorting
+    uint32_t m_memoryLimit;  // Memory limit for sorting
 };
 
 
