@@ -10,25 +10,6 @@
 #include <iostream>
 #include <cstdint>
 
-void containsZeroes(const std::string& filePath)
-{
-    std::ifstream file(filePath, std::ios::binary | std::ios::in);
-    uint32_t zeros = 0;
-    if (!file.is_open()) {
-        std::cerr << "Failed to open file: " << filePath << std::endl;
-        return;
-    }
-
-    int32_t value;
-    while (file.read(reinterpret_cast<char*>(&value), sizeof(int32_t))) {
-        if (value == 0)
-            zeros++;  // Found a zero
-    }
-
-    std::cout << filePath << ": " << zeros << " zeros found" << std::endl;
-}
-
-
 uint32_t getMemoryLimit(const std::string &fileName)
 {
     std::map<std::string, std::string> config;
@@ -89,15 +70,8 @@ int main(int argc, char* argv[])
 
         TapeSorter<TapeEmulator> ts = TapeSorter<TapeEmulator>(inputTape, outputTape, getMemoryLimit("../config.ini"));
         ts.sort();
-        std::cout << inputTape->getSize() << std::endl;
-        std::cout << outputTape->getSize() << std::endl;
-//        containsZeroes(inputFile);
-//        containsZeroes("temp/temp_0");
-//        containsZeroes("temp/temp_1");
-//        containsZeroes("temp/temp_2");
-//        containsZeroes("temp/temp_3");
-        containsZeroes(outputFile);
-//        outputTape->printContentNoLatency();
+//      outputTape->printContentNoLatency();
+
     }catch (std::exception& e)
     {
         std::cout << "Something went wrong: " << e.what() << std::endl;

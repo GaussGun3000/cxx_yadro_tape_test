@@ -8,8 +8,7 @@ template class TapeSorter<TapeEmulator>;
 template <typename T>
 TapeSorter<T>::TapeSorter(std::shared_ptr<T> inputTape, std::shared_ptr<T> outputTape, uint32_t memoryLimit):
     m_inputTape(inputTape), m_outputTape(outputTape), m_memoryLimit(memoryLimit)
-{
-}
+{}
 
 template <>
 void TapeSorter<TapeEmulator>::getEmptyTempTape(uint32_t chunkIndex, uint32_t chunkSize)

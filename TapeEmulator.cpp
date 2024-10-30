@@ -26,7 +26,6 @@ TapeEmulator::TapeEmulator(const std::string& fileName, uint32_t tapeSize)
     {
         parseConfig("../config.ini");
         m_tapeSize = std::filesystem::file_size(fileName);
-
     }
 }
 
@@ -38,7 +37,6 @@ int32_t TapeEmulator::readCell()
         throw std::out_of_range("Cannot read past end of Tape! CurrentPos:" + std::to_string(getCurrentPosition())
                                                                             + " Size: " + std::to_string(getSize()));
     }
-
     int32_t value = 0;
     m_tapeFile.read(reinterpret_cast<char*>(&value), sizeof(int32_t));
     m_tapeFile.seekg(-static_cast<std::streamoff>(sizeof(int32_t)), std::ios::cur);
